@@ -109,3 +109,27 @@ src/systemcmds/topic_listener/listener_generated.cpp
 # colcon
 log/
 keys/
+
+# Python virtual environment
+.venv/
+
+# PX4 build directories
+build/
+
+# Generated bootloader binaries
+*.bin
+*.elf
+*.px4
+*.hex
+*.map
+
+# Temporary files
+*.o
+*.obj
+*.a
+*.log
+
+# Editor files
+.vscode/
+.idea/
+*~
