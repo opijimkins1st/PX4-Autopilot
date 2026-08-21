@@ -49,17 +49,10 @@
  * separate switch, we need to build independent of the
  * CONFIG_ARCH_LEDS configuration switch.
  *
- * KakuteH7 DualIMU LED configuration:
- * - Red LED (PE9): TRIP LED, active high
- * - Blue LED (PC2): Status LED, active low
- * - Green LED: Hardware controlled, always on when powered (no software control)
+ *  Winegard_Kestrel only controls 1 green LED @ GPIO PC13
+ *  active low
+ * - Red LED: Hardware controlled, always on when powered (no software control)
  */
-__BEGIN_DECLS
-extern void led_init(void);
-extern void led_on(int led);
-extern void led_off(int led);
-extern void led_toggle(int led);
-__END_DECLS
 
 #ifdef CONFIG_ARCH_LEDS
 static bool nuttx_owns_leds = true;
@@ -80,14 +73,17 @@ static bool g_led_inverted[] = {
 #else
 
 #  define xlat(p) (p)
+
 static uint32_t g_ledmap[] = {
-	GPIO_nLED_BLUE,                     // Indexed by LED_BLUE
-	GPIO_LED_RED,                       // Indexed by LED_RED
+    GPIO_nLED_GREEN,   // RED
+    GPIO_nLED_GREEN,   // BLUE
+    GPIO_nLED_GREEN    // GREEN
 };
 
 static bool g_led_inverted[] = {
-	true, // LED blue is active low
-	false, // LED_RED is active high
+    true,
+    true,
+    true
 };
 
 #endif

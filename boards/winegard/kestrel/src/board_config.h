@@ -59,16 +59,20 @@
 #  define BOARD_HAS_NBAT_V              1
 #  define BOARD_HAS_NBAT_I              1
 
-/* Holybro KakuteH7 GPIOs ************************************************************************/
+/* Winegard Kestrel GPIOs ************************************************************************/
 
-/* LEDs are driven with push open drain to support Anode to 5V or 3.3V */
-
-#define GPIO_LED_RED        /* PE9 */  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTE|GPIO_PIN9)
-#define GPIO_nLED_BLUE        /* PC2 */  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTC|GPIO_PIN2)
+/* LED is driven with open drain */
+#define GPIO_nLED_GREEN        /* PC13 */  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN13)
 
 #define BOARD_HAS_CONTROL_STATUS_LEDS      1
-#define BOARD_OVERLOAD_LED     LED_RED
-#define BOARD_ARMED_STATE_LED  LED_BLUE
+#define BOARD_OVERLOAD_LED     LED_GREEN
+
+#define GPIO_LED_BLUE     GPIO_nLED_GREEN
+#define GPIO_LED_GREEN    GPIO_nLED_GREEN
+#define GPIO_LED_RED      GPIO_nLED_GREEN
+
+#define GPIO_nLED_BLUE    GPIO_nLED_GREEN
+#define GPIO_nLED_RED     GPIO_nLED_GREEN
 
 /*
  * ADC channels
@@ -86,21 +90,21 @@
 /* Define GPIO pins used as ADC N.B. Channel numbers must match below */
 
 #define PX4_ADC_GPIO  \
-	/* PC4 */  GPIO_ADC12_INP4, \
-	/* PC5 */  GPIO_ADC12_INP8, \
-	/* PC0 */  GPIO_ADC123_INP10
+	/* PC2 */  GPIO_ADC123_INP12, \
+	/* PC3 */  GPIO_ADC12_INP13, \
+	/* PC5 */  GPIO_ADC12_INP8
 
 /* Define Channel numbers must match above GPIO pin IN(n)*/
 
-#define ADC_BATTERY_CURRENT_CHANNEL        /* PC4 */  ADC1_CH(4)
-#define ADC_BATTERY_VOLTAGE_CHANNEL        /* PC5 */  ADC1_CH(8)
-#define ADC_RC_RSSI_CHANNEL                /* PC0 */  ADC1_CH(10)
+#define ADC_BATTERY_VOLTAGE_CHANNEL        /* PC3 */  ADC1_CH(13)
+#define ADC_BATTERY_CURRENT_CHANNEL        /* PC2 */  ADC1_CH(12)
+#define ADC_RSSI_IN_CHANNEL                /* PC5 */  ADC1_CH(8)
 
 
 #define ADC_CHANNELS \
 	((1 << ADC_BATTERY_VOLTAGE_CHANNEL)       | \
 	 (1 << ADC_BATTERY_CURRENT_CHANNEL)       | \
-	 (1 << ADC_RC_RSSI_CHANNEL))
+	 (1 << ADC_RSSI_IN_CHANNEL))
 
 #define BOARD_ADC_OPEN_CIRCUIT_V     (5.6f)
 
@@ -108,30 +112,33 @@
 
 /* PWM
  */
-#define DIRECT_PWM_OUTPUT_CHANNELS  8
+#define DIRECT_PWM_OUTPUT_CHANNELS  9
 
 #define BOARD_NUM_IO_TIMERS 4
 
 
 /* Tone alarm output */
 
-#define TONE_ALARM_TIMER        15  /* timer 15 */
-#define TONE_ALARM_CHANNEL      2  /* PA3 TIM15_CH2 */
+#define TONE_ALARM_TIMER        4  /* timer 4 */
+#define TONE_ALARM_CHANNEL      4  /* PD15 TIM4_CH4 */
 
-#define GPIO_BUZZER_1           /* PA3 */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTA|GPIO_PIN3)
+#define GPIO_BUZZER_1           /* PD15 */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTD|GPIO_PIN15)
+
+//#define GPIO_TONE_ALARM_IDLE    /* PD15 */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTD|GPIO_PIN15)
+#define GPIO_TONE_ALARM_GPIO    /* PD15 */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTD|GPIO_PIN15)
 
 #define GPIO_TONE_ALARM_IDLE    GPIO_BUZZER_1
-#define GPIO_TONE_ALARM         GPIO_TIM15_CH2OUT_1
+#define GPIO_TONE_ALARM         GPIO_TIM4_CH4OUT_1
 
 /* USB OTG FS
  *
  * PA9  OTG_FS_VBUS VBUS sensing
  */
-#define GPIO_OTGFS_VBUS         /* PA8 */ (GPIO_INPUT|GPIO_PULLDOWN|GPIO_SPEED_100MHz|GPIO_PORTA|GPIO_PIN8)
+#define GPIO_OTGFS_VBUS         /* PA8 */ (GPIO_INPUT|GPIO_PULLDOWN|GPIO_SPEED_100MHz|GPIO_PORTA|GPIO_PIN9)
 
 /* High-resolution timer */
-#define HRT_TIMER               8  /* use timer8 for the HRT */
-#define HRT_TIMER_CHANNEL       1  /* use capture/compare channel 1 */
+#define HRT_TIMER               5  /* use timer5 for the HRT */
+#define HRT_TIMER_CHANNEL       2  /* use capture/compare channel 2 */
 
 /* RC Serial port */
 
@@ -141,12 +148,12 @@
 //#define PWMIN_TIMER_CHANNEL    /* T5C1 */ 1
 //#define GPIO_PWM_IN            /* PA0  */ GPIO_TIM5_CH1IN
 
-// PPM in on Serial Rx (R6)
-#define HRT_PPM_CHANNEL         /* TIM8CH2 */  2  /* use capture/compare channel 2 */
-#define GPIO_PPM_IN             /* PC7 */ GPIO_TIM8_CH2IN_1
+// // PPM in on Serial Rx (R6)
+// #define HRT_PPM_CHANNEL         /* TIM8CH2 */  2  /* use capture/compare channel 2 */
+// #define GPIO_PPM_IN             /* PC7 */ GPIO_TIM8_CH2IN_1
 
-#define RC_SERIAL_PORT                     "/dev/ttyS4" // USART6
-#define RC_SERIAL_PORT_SHARED_PPM_PIN_GPIO_RX             GPIO_USART6_RX
+// #define RC_SERIAL_PORT                     "/dev/ttyS4" // USART6
+// #define RC_SERIAL_PORT_SHARED_PPM_PIN_GPIO_RX             GPIO_USART6_RX
 
 /* Power switch controls ******************************************************/
 
@@ -183,11 +190,8 @@
 
 #define PX4_GPIO_INIT_LIST { \
 		PX4_ADC_GPIO,                     \
-		GPIO_LED_RED,                     \
-		GPIO_nLED_BLUE,                     \
+		GPIO_nLED_GREEN,                     \
 		GPIO_BUZZER_1,             \
-		GPIO_CAN1_TX,                     \
-		GPIO_CAN1_RX,                     \
 	}
 
 #define BOARD_ENABLE_CONSOLE_BUFFER

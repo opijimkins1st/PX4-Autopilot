@@ -309,16 +309,12 @@
 /* LED index values for use with board_userled() */
 
 #define BOARD_LED1        0
-#define BOARD_LED2        1
-#define BOARD_NLEDS       2
-
-#define BOARD_LED_RED     BOARD_LED1
-#define BOARD_LED_BLUE    BOARD_LED2
+#define BOARD_NLEDS       1
+#define BOARD_LED_GREEN     BOARD_LED1
 
 /* LED bits for use with board_userled_all() */
 
 #define BOARD_LED1_BIT    (1 << BOARD_LED1)
-#define BOARD_LED2_BIT    (1 << BOARD_LED2)
 
 /* If CONFIG_ARCH_LEDS is defined, the usage by the board port is defined in
  * include/board.h and src/stm32_leds.c. The LEDs are used to encode OS-related
@@ -348,35 +344,39 @@
 /* Alternate function pin selections ************************************************/
 
 
+// RF
 #define GPIO_USART1_RX   GPIO_USART1_RX_2    /* PA10 */
 #define GPIO_USART1_TX   GPIO_USART1_TX_2    /* PA9 */
 
-#define GPIO_USART2_RX   GPIO_USART2_RX_2   /* PD6 */
-#define GPIO_USART2_TX   GPIO_USART2_TX_2   /* PD5 */
+// 5.8G VTX
+#define GPIO_USART2_RX   GPIO_USART2_RX_1   /* PA3 */
+#define GPIO_USART2_TX   GPIO_USART2_TX_1   /* PA2 */
 
+//
 #define GPIO_USART3_RX   GPIO_USART3_RX_3   /* PD9  */
 #define GPIO_USART3_TX   GPIO_USART3_TX_3   /* PD8  */
 
-#define GPIO_UART4_RX    GPIO_UART4_RX_5    /* PD0 */
-#define GPIO_UART4_TX    GPIO_UART4_TX_5    /* PD1 */
+// SBUS - Might conflict with HighResTimer because this is TIM5_CH2 on PA1
+#define GPIO_UART4_RX    GPIO_UART4_RX_2    /* PA1 */
+// SBUS - Might conflict with PWM in Timer because this is TIM5_CH1 on PA0
+#define GPIO_UART4_TX    GPIO_UART4_TX_2    /* PA0 */
 
+// GPS
 #define GPIO_USART6_RX   GPIO_USART6_RX_1   /* PC7  */
 #define GPIO_USART6_TX   GPIO_USART6_TX_1   /* PC6 */
 
+// HD Display
 #define GPIO_UART7_RX    GPIO_UART7_RX_3    /* PE7 */
-#define GPIO_UART7_TX    GPIO_UART7_TX_3    /* PE8 -> not connected */
+#define GPIO_UART7_TX    GPIO_UART7_TX_3    /* PE8 */
 
-/* CAN
- *
- * CAN1 is routed to transceiver.
- */
-#define GPIO_CAN1_RX     GPIO_CAN1_RX_2     /* PB8  */
-#define GPIO_CAN1_TX     GPIO_CAN1_TX_2     /* PB9  */
+// Telemetry
+#define GPIO_UART8_RX    GPIO_UART8_RX_1    /* PE0 */
+#define GPIO_UART8_TX    GPIO_UART8_TX_1    /* PE1 */
 
 /* SPI
- * SPI1 ICM45686
- * SPI2 is OSD AT7456E
- * SPI4 ICM42688P
+ * SPI1 OSD AT7456E
+ * SPI2 is IMU
+ * SPI4 is FLASH
  */
 
 #define GPIO_SPI1_MISO   GPIO_SPI1_MISO_1   /* PA6 */
@@ -384,7 +384,7 @@
 #define GPIO_SPI1_SCK    GPIO_SPI1_SCK_1    /* PA5 */
 
 #define GPIO_SPI2_MISO   GPIO_SPI2_MISO_1   /* PB14 */
-#define GPIO_SPI2_MOSI   GPIO_SPI2_MOSI_2   /* PC1 */
+#define GPIO_SPI2_MOSI   GPIO_SPI2_MOSI_1   /* PB15 */
 #define GPIO_SPI2_SCK    GPIO_SPI2_SCK_4    /* PB13 */
 
 #define GPIO_SPI4_MISO   GPIO_SPI4_MISO_2   /* PE5 */
@@ -394,11 +394,11 @@
 /* I2C
  */
 
-#define GPIO_I2C1_SCL GPIO_I2C1_SCL_1       /* PB6  */
-#define GPIO_I2C1_SDA GPIO_I2C1_SDA_1       /* PB7  */
+#define GPIO_I2C1_SCL GPIO_I2C1_SCL_2       /* PB8  */
+#define GPIO_I2C1_SDA GPIO_I2C1_SDA_2       /* PB9  */
 
-#define GPIO_I2C1_SCL_GPIO                  (GPIO_OUTPUT | GPIO_OPENDRAIN |GPIO_SPEED_50MHz | GPIO_OUTPUT_SET | GPIO_PORTB | GPIO_PIN6)
-#define GPIO_I2C1_SDA_GPIO                  (GPIO_OUTPUT | GPIO_OPENDRAIN |GPIO_SPEED_50MHz | GPIO_OUTPUT_SET | GPIO_PORTB | GPIO_PIN7)
+#define GPIO_I2C1_SCL_GPIO                  (GPIO_OUTPUT | GPIO_OPENDRAIN |GPIO_SPEED_50MHz | GPIO_OUTPUT_SET | GPIO_PORTB | GPIO_PIN8)
+#define GPIO_I2C1_SDA_GPIO                  (GPIO_OUTPUT | GPIO_OPENDRAIN |GPIO_SPEED_50MHz | GPIO_OUTPUT_SET | GPIO_PORTB | GPIO_PIN9)
 
 /* SDMMC1
  *

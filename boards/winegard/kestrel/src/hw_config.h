@@ -28,8 +28,6 @@
  * INTERFACE_USART      1                     - (Optional) Scan and use the Serial interface for bootloading
  * USBDEVICESTRING      "PX4 BL FMU v2.x"     - USB id string
  * USBPRODUCTID         0x0011                - PID Should match defconfig
- * BOOT_DELAY_ADDRESS   0x000001a0            - (Optional) From the linker script from Linker Script to get a custom
- *                                               delay provided by an APP FW
  * BOARD_TYPE           9                     - Must match .prototype boad_id
  * _FLASH_KBYTES        (*(uint16_t *)0x1fff7a22) - Run time flash size detection
  * BOARD_FLASH_SECTORS  ((_FLASH_KBYTES == 0x400) ? 11 : 23) - Run time determine the physical last sector
@@ -62,13 +60,13 @@
 #define SERIAL1_DEV    0x04
 
 #define APP_LOAD_ADDRESS               0x08020000
+#define BOOT_DELAY_ADDRESS 	       0x000001a0
 #define BOOTLOADER_DELAY               3000
 #define INTERFACE_USB                  1
 #define INTERFACE_USB_CONFIG           "/dev/ttyACM0"
 #define BOARD_VBUS                     MK_GPIO_INPUT(GPIO_OTGFS_VBUS)
 
 //#define USE_VBUS_PULL_DOWN
-#define BOOT_DELAY_ADDRESS             0x000001a0
 #define BOARD_TYPE                     5409
 #define BOARD_FLASH_SECTORS            (14)
 #define BOARD_FLASH_SIZE               (16 * 128 * 1024)
@@ -76,7 +74,7 @@
 
 #define OSC_FREQ                       8
 
-#define BOARD_PIN_LED_ACTIVITY         GPIO_LED_RED
+#define BOARD_PIN_LED_ACTIVITY         GPIO_nLED_GREEN
 #define BOARD_LED_ON                   0
 #define BOARD_LED_OFF                  1
 
