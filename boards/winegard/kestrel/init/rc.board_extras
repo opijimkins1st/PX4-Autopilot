@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# KakuteH7 specific board extras init
+# Winegard Kestrel specific board extras init
 #------------------------------------------------------------------------------
 
 if ! param compare OSD_ATXXXX_CFG 0

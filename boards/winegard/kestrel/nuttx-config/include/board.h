@@ -52,7 +52,7 @@
  ************************************************************************************/
 
 /* Clocking *************************************************************************/
-/* The holybro KakuteH7  board provides the following clock sources:
+/* The Winegard Kestrel board provides the following clock sources:
  *
  *   X1: 8 MHz crystal for HSE
  *
@@ -231,10 +231,6 @@
 
 #define STM32_RCC_D2CCIP1R_SPI123SRC RCC_D2CCIP1R_SPI123SEL_PLL2
 
-/* SPI45 clock source */
-
-#define STM32_RCC_D2CCIP1R_SPI45SRC  RCC_D2CCIP1R_SPI45SEL_PLL2
-
 /* SPI6 clock source */
 
 #define STM32_RCC_D3CCIPR_SPI6SRC    RCC_D3CCIPR_SPI6SEL_PLL2
@@ -299,9 +295,8 @@
 #define STM32_SDMMC_CLKCR_EDGE      STM32_SDMMC_CLKCR_NEGEDGE
 
 /* LED definitions ******************************************************************/
-/* The holybro KakuteH7 board has three, LED_GREEN a Green LED, LED_BLUE
- * a Blue LED and LED_RED a Red LED, that can be controlled by software.
- *
+/* The Winegard Kestrel board has 2 LEDs, LED_GREEN a Green LED, and LED_RED a Red LED.
+ * The Red LED is tied to the 3.3 volt power supply and is active when 3.3 volts is present.
  * If CONFIG_ARCH_LEDS is not defined, then the user can control the LEDs in any way.
  * The following definitions are used to access individual LEDs.
  */
@@ -376,7 +371,6 @@
 /* SPI
  * SPI1 OSD AT7456E
  * SPI2 is IMU
- * SPI4 is FLASH
  */
 
 #define GPIO_SPI1_MISO   GPIO_SPI1_MISO_1   /* PA6 */
@@ -387,9 +381,6 @@
 #define GPIO_SPI2_MOSI   GPIO_SPI2_MOSI_1   /* PB15 */
 #define GPIO_SPI2_SCK    GPIO_SPI2_SCK_4    /* PB13 */
 
-#define GPIO_SPI4_MISO   GPIO_SPI4_MISO_2   /* PE5 */
-#define GPIO_SPI4_MOSI   GPIO_SPI4_MOSI_2   /* PE6 */
-#define GPIO_SPI4_SCK    GPIO_SPI4_SCK_2    /* PE2 */
 
 /* I2C
  */

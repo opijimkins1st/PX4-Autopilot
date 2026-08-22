@@ -34,7 +34,7 @@
 /**
  * @file board_config.h
  *
- * holybro KakuteH7 internal definitions
+ * Winegard Kestrel internal definitions
  */
 
 #pragma once
