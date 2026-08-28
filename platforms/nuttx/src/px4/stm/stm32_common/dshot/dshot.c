@@ -256,6 +256,13 @@ static int32_t init_timer_channels(uint8_t timer_index)
 		if (this_timer && channel_enabled) {
 			int ret = io_timer_channel_init(output_channel, mode, NULL, NULL);
 
+			PX4_INFO("Output %u: timer=%u channel=%u ret=%d",
+             			output_channel,
+             			timer_index,
+              			timer_channel_index + 1,
+             			ret);
+
+
 			if (ret != OK) {
 				PX4_WARN("io_timer_channel_init %u failed", output_channel);
 				continue;
