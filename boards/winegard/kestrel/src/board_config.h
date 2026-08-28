@@ -130,6 +130,14 @@
 #define GPIO_TONE_ALARM_IDLE    GPIO_BUZZER_1
 #define GPIO_TONE_ALARM         GPIO_TIM4_CH4OUT_1
 
+/* Force DShot/motor timer pins to a known GPIO state before the timer peripheral claims them.
+ * This is needed for PB4 in particular, since it defaults to NJTRST (JTAG) function on reset.
+ */
+#define GPIO_TIM3_CH1_RESET   /* PB4 */  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTB|GPIO_PIN4)
+#define GPIO_TIM3_CH2_RESET   /* PB5 */  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTB|GPIO_PIN5)
+#define GPIO_TIM3_CH3_RESET   /* PB0 */  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTB|GPIO_PIN0)
+#define GPIO_TIM3_CH4_RESET   /* PB1 */  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTB|GPIO_PIN1)
+
 /* USB OTG FS
  *
  * PA9  OTG_FS_VBUS VBUS sensing
@@ -192,6 +200,10 @@
 		PX4_ADC_GPIO,                     \
 		GPIO_nLED_GREEN,                     \
 		GPIO_BUZZER_1,             \
+		GPIO_TIM3_CH1_RESET,             \
+		GPIO_TIM3_CH2_RESET,             \
+		GPIO_TIM3_CH3_RESET,             \
+		GPIO_TIM3_CH4_RESET,             \
 	}
 
 #define BOARD_ENABLE_CONSOLE_BUFFER
