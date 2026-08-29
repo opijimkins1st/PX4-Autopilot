@@ -1,0 +1,781 @@
+diff --git a/boards/holybro/kakuteh7dualimu/default.px4board b/boards/winegard/kestrel/default.px4board
+index 8ce5497dae..647a13206b 100644
+--- a/boards/holybro/kakuteh7dualimu/default.px4board
++++ b/boards/winegard/kestrel/default.px4board
+@@ -1,15 +1,14 @@
+ CONFIG_BOARD_TOOLCHAIN="arm-none-eabi"
+ CONFIG_BOARD_ARCHITECTURE="cortex-m7"
+-CONFIG_BOARD_SERIAL_GPS1="/dev/ttyS3"
+-CONFIG_BOARD_SERIAL_TEL1="/dev/ttyS0"
+-CONFIG_BOARD_SERIAL_TEL2="/dev/ttyS1"
+-CONFIG_BOARD_SERIAL_TEL3="/dev/ttyS2"
+-CONFIG_BOARD_SERIAL_RC="/dev/ttyS4"
+-CONFIG_BOARD_SERIAL_TEL4="/dev/ttyS5"
++CONFIG_BOARD_SERIAL_GPS1="/dev/ttyS4" # UART6
++CONFIG_BOARD_SERIAL_TEL1="/dev/ttyS1"
++CONFIG_BOARD_SERIAL_TEL2="/dev/ttyS2" # UASART3 Bootloader
++CONFIG_BOARD_SERIAL_OSD="/dev/ttyS5" # UART7
++# CONFIG_BOARD_SERIAL_RC="/dev/ttyS0"
++CONFIG_BOARD_SERIAL_ESC="/dev/ttyS6"  # UART8
+ CONFIG_BOARD_CONSTRAINED_FLASH=y
+ CONFIG_DRIVERS_ADC_BOARD_ADC=y
+ CONFIG_DRIVERS_BATT_SMBUS=y
+-CONFIG_DRIVERS_BAROMETER_INVENSENSE_ICP201XX=y
+ CONFIG_DRIVERS_CAMERA_CAPTURE=y
+ CONFIG_DRIVERS_CAMERA_TRIGGER=y
+ CONFIG_DRIVERS_CDCACM_AUTOSTART=y
+@@ -18,11 +17,10 @@ CONFIG_COMMON_DIFFERENTIAL_PRESSURE=y
+ CONFIG_COMMON_DISTANCE_SENSOR=y
+ CONFIG_DRIVERS_DSHOT=y
+ CONFIG_DRIVERS_GPS=y
+-CONFIG_DRIVERS_IMU_INVENSENSE_ICM42688P=y
+-CONFIG_DRIVERS_IMU_INVENSENSE_ICM45686=y
++CONFIG_DRIVERS_BAROMETER_BMP581=y
++CONFIG_DRIVERS_IMU_INVENSENSE_ICM42605=y
+ CONFIG_COMMON_LIGHT=y
+ CONFIG_COMMON_MAGNETOMETER=y
+-CONFIG_COMMON_OPTICAL_FLOW=y
+ CONFIG_DRIVERS_PWM_OUT=y
+ CONFIG_DRIVERS_RC_INPUT=y
+ CONFIG_COMMON_TELEMETRY=y
+@@ -51,7 +49,7 @@ CONFIG_MODULES_FW_AUTOTUNE_ATTITUDE_CONTROL=y
+ CONFIG_MODULES_FW_MODE_MANAGER=y
+ CONFIG_MODULES_FW_LATERAL_LONGITUDINAL_CONTROL=y
+ CONFIG_MODULES_FW_RATE_CONTROL=y
+-CONFIG_MODULES_GIMBAL=y
++# CONFIG_MODULES_GIMBAL=y
+ CONFIG_MODULES_GYRO_CALIBRATION=y
+ CONFIG_MODULES_GYRO_FFT=y
+ CONFIG_MODULES_LAND_DETECTOR=y
+@@ -70,8 +68,8 @@ CONFIG_MODULES_NAVIGATOR=y
+ CONFIG_NUM_MISSION_ITMES_SUPPORTED=1000
+ CONFIG_MODULES_RC_UPDATE=y
+ CONFIG_MODULES_SENSORS=y
+-# CONFIG_MODULES_TEMPERATURE_COMPENSATION is not set
+ CONFIG_MODULES_VTOL_ATT_CONTROL=y
++CONFIG_SYSTEMCMDS_BL_UPDATE=y
+ CONFIG_SYSTEMCMDS_BSONDUMP=y
+ CONFIG_SYSTEMCMDS_DMESG=y
+ CONFIG_SYSTEMCMDS_HARDFAULT_LOG=y
+diff --git a/boards/holybro/kakuteh7dualimu/extras/holybro_kakuteh7_bootloader.bin b/boards/holybro/kakuteh7dualimu/extras/holybro_kakuteh7_bootloader.bin
+deleted file mode 100755
+index 7f5d2b31af..0000000000
+Binary files a/boards/holybro/kakuteh7dualimu/extras/holybro_kakuteh7_bootloader.bin and /dev/null differ
+diff --git a/boards/holybro/kakuteh7dualimu/extras/holybro_kakuteh7dualimu_bootloader.bin b/boards/winegard/kestrel/extras/winegard_kestrel_bootloader.bin
+similarity index 75%
+rename from boards/holybro/kakuteh7dualimu/extras/holybro_kakuteh7dualimu_bootloader.bin
+rename to boards/winegard/kestrel/extras/winegard_kestrel_bootloader.bin
+index d0b7bfa91b..3f9518468f 100755
+Binary files a/boards/holybro/kakuteh7dualimu/extras/holybro_kakuteh7dualimu_bootloader.bin and b/boards/winegard/kestrel/extras/winegard_kestrel_bootloader.bin differ
+diff --git a/boards/holybro/kakuteh7dualimu/firmware.prototype b/boards/winegard/kestrel/firmware.prototype
+index 4e00d7a8fc..667147d385 100644
+--- a/boards/holybro/kakuteh7dualimu/firmware.prototype
++++ b/boards/winegard/kestrel/firmware.prototype
+@@ -1,10 +1,10 @@
+ {
+     "board_id": 5409,
+     "magic": "PX4FWv1",
+-    "description": "Firmware for the KakuteH7 board",
++    "description": "Firmware for the KestrelH743 board",
+     "image": "",
+     "build_time": 0,
+-    "summary": "KAKUTEH7",
++    "summary": "KESTRELH743",
+     "version": "0.1",
+     "image_size": 0,
+     "image_maxsize": 1703936,
+diff --git a/boards/holybro/kakuteh7dualimu/init/rc.board_extras b/boards/winegard/kestrel/init/rc.board_extras
+index 3629cd2958..f9b06eb00b 100644
+--- a/boards/holybro/kakuteh7dualimu/init/rc.board_extras
++++ b/boards/winegard/kestrel/init/rc.board_extras
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ #
+-# KakuteH7 specific board extras init
++# Winegard Kestrel specific board extras init
+ #------------------------------------------------------------------------------
+ 
+ if ! param compare OSD_ATXXXX_CFG 0
+diff --git a/boards/holybro/kakuteh7dualimu/init/rc.board_sensors b/boards/winegard/kestrel/init/rc.board_sensors
+index 284490fe13..0b5f5edbbc 100644
+--- a/boards/holybro/kakuteh7dualimu/init/rc.board_sensors
++++ b/boards/winegard/kestrel/init/rc.board_sensors
+@@ -1,13 +1,11 @@
+ #!/bin/sh
+ #
+-# Holybro KakuteH7 dual IMU specific board sensors init
++# Winegard Kestrel board sensors init
+ #------------------------------------------------------------------------------
+ board_adc start
+ 
+-# The KakuteH7 dual IMU comes by default with an ICM2688P and ICM45686.
+-# We start the ICM45686 first to have it as the primary by default.
+-icm45686 -R 0 -s start
+-icm42688p -R 0 -s start
++# Winegard Kestrel has an onboard ICM-42605 IMU on SPI2.
++icm42605 -R 0 -s start
+ 
+-# ICP20100 baro on external I2C1
+-icp201xx -X -a 0x64 start
++# bmp581 baro on I2C1
++bmp581 start -I
+diff --git a/boards/holybro/kakuteh7dualimu/nuttx-config/bootloader/defconfig b/boards/winegard/kestrel/nuttx-config/bootloader/defconfig
+index 33dff54bc8..41256ce094 100644
+--- a/boards/holybro/kakuteh7dualimu/nuttx-config/bootloader/defconfig
++++ b/boards/winegard/kestrel/nuttx-config/bootloader/defconfig
+@@ -11,7 +11,7 @@
+ # CONFIG_STM32H7_SYSCFG is not set
+ CONFIG_ARCH="arm"
+ CONFIG_ARCH_BOARD_CUSTOM=y
+-CONFIG_ARCH_BOARD_CUSTOM_DIR="../../../../boards/holybro/kakuteh7dualimu/nuttx-config"
++CONFIG_ARCH_BOARD_CUSTOM_DIR="../../../../boards/winegard/kestrel/nuttx-config"
+ CONFIG_ARCH_BOARD_CUSTOM_DIR_RELPATH=y
+ CONFIG_ARCH_BOARD_CUSTOM_NAME="px4"
+ CONFIG_ARCH_CHIP="stm32h7"
+@@ -32,11 +32,11 @@ CONFIG_BOARD_RESET_ON_ASSERT=2
+ CONFIG_CDCACM=y
+ CONFIG_CDCACM_IFLOWCONTROL=y
+ CONFIG_CDCACM_PRODUCTID=0x0050
+-CONFIG_CDCACM_PRODUCTSTR="PX4 BL Holybro KakuteH7"
++CONFIG_CDCACM_PRODUCTSTR="PX4 BL Winegard Kerstel H743"
+ CONFIG_CDCACM_RXBUFSIZE=600
+ CONFIG_CDCACM_TXBUFSIZE=12000
+ CONFIG_CDCACM_VENDORID=0x3162
+-CONFIG_CDCACM_VENDORSTR="Holybro"
++CONFIG_CDCACM_VENDORSTR="Winegard"
+ CONFIG_DEBUG_FULLOPT=y
+ CONFIG_DEBUG_SYMBOLS=y
+ CONFIG_DEBUG_TCBINFO=y
+diff --git a/boards/holybro/kakuteh7dualimu/nuttx-config/include/board.h b/boards/winegard/kestrel/nuttx-config/include/board.h
+index a182be3ab9..f3c9deae4a 100644
+--- a/boards/holybro/kakuteh7dualimu/nuttx-config/include/board.h
++++ b/boards/winegard/kestrel/nuttx-config/include/board.h
+@@ -52,7 +52,7 @@
+  ************************************************************************************/
+ 
+ /* Clocking *************************************************************************/
+-/* The holybro KakuteH7  board provides the following clock sources:
++/* The Winegard Kestrel board provides the following clock sources:
+  *
+  *   X1: 8 MHz crystal for HSE
+  *
+@@ -231,10 +231,6 @@
+ 
+ #define STM32_RCC_D2CCIP1R_SPI123SRC RCC_D2CCIP1R_SPI123SEL_PLL2
+ 
+-/* SPI45 clock source */
+-
+-#define STM32_RCC_D2CCIP1R_SPI45SRC  RCC_D2CCIP1R_SPI45SEL_PLL2
+-
+ /* SPI6 clock source */
+ 
+ #define STM32_RCC_D3CCIPR_SPI6SRC    RCC_D3CCIPR_SPI6SEL_PLL2
+@@ -299,9 +295,8 @@
+ #define STM32_SDMMC_CLKCR_EDGE      STM32_SDMMC_CLKCR_NEGEDGE
+ 
+ /* LED definitions ******************************************************************/
+-/* The holybro KakuteH7 board has three, LED_GREEN a Green LED, LED_BLUE
+- * a Blue LED and LED_RED a Red LED, that can be controlled by software.
+- *
++/* The Winegard Kestrel board has 2 LEDs, LED_GREEN a Green LED, and LED_RED a Red LED.
++ * The Red LED is tied to the 3.3 volt power supply and is active when 3.3 volts is present.
+  * If CONFIG_ARCH_LEDS is not defined, then the user can control the LEDs in any way.
+  * The following definitions are used to access individual LEDs.
+  */
+@@ -309,16 +304,12 @@
+ /* LED index values for use with board_userled() */
+ 
+ #define BOARD_LED1        0
+-#define BOARD_LED2        1
+-#define BOARD_NLEDS       2
+-
+-#define BOARD_LED_RED     BOARD_LED1
+-#define BOARD_LED_BLUE    BOARD_LED2
++#define BOARD_NLEDS       1
++#define BOARD_LED_GREEN     BOARD_LED1
+ 
+ /* LED bits for use with board_userled_all() */
+ 
+ #define BOARD_LED1_BIT    (1 << BOARD_LED1)
+-#define BOARD_LED2_BIT    (1 << BOARD_LED2)
+ 
+ /* If CONFIG_ARCH_LEDS is defined, the usage by the board port is defined in
+  * include/board.h and src/stm32_leds.c. The LEDs are used to encode OS-related
+@@ -348,35 +339,38 @@
+ /* Alternate function pin selections ************************************************/
+ 
+ 
++// RF
+ #define GPIO_USART1_RX   GPIO_USART1_RX_2    /* PA10 */
+ #define GPIO_USART1_TX   GPIO_USART1_TX_2    /* PA9 */
+ 
+-#define GPIO_USART2_RX   GPIO_USART2_RX_2   /* PD6 */
+-#define GPIO_USART2_TX   GPIO_USART2_TX_2   /* PD5 */
++// 5.8G VTX
++#define GPIO_USART2_RX   GPIO_USART2_RX_1   /* PA3 */
++#define GPIO_USART2_TX   GPIO_USART2_TX_1   /* PA2 */
+ 
++//
+ #define GPIO_USART3_RX   GPIO_USART3_RX_3   /* PD9  */
+ #define GPIO_USART3_TX   GPIO_USART3_TX_3   /* PD8  */
+ 
+-#define GPIO_UART4_RX    GPIO_UART4_RX_5    /* PD0 */
+-#define GPIO_UART4_TX    GPIO_UART4_TX_5    /* PD1 */
++// SBUS - Might conflict with HighResTimer because this is TIM5_CH2 on PA1
++#define GPIO_UART4_RX    GPIO_UART4_RX_2    /* PA1 */
++// SBUS - Might conflict with PWM in Timer because this is TIM5_CH1 on PA0
++#define GPIO_UART4_TX    GPIO_UART4_TX_2    /* PA0 */
+ 
++// GPS
+ #define GPIO_USART6_RX   GPIO_USART6_RX_1   /* PC7  */
+ #define GPIO_USART6_TX   GPIO_USART6_TX_1   /* PC6 */
+ 
++// HD Display
+ #define GPIO_UART7_RX    GPIO_UART7_RX_3    /* PE7 */
+-#define GPIO_UART7_TX    GPIO_UART7_TX_3    /* PE8 -> not connected */
++#define GPIO_UART7_TX    GPIO_UART7_TX_3    /* PE8 */
+ 
+-/* CAN
+- *
+- * CAN1 is routed to transceiver.
+- */
+-#define GPIO_CAN1_RX     GPIO_CAN1_RX_2     /* PB8  */
+-#define GPIO_CAN1_TX     GPIO_CAN1_TX_2     /* PB9  */
++// Telemetry
++#define GPIO_UART8_RX    GPIO_UART8_RX_1    /* PE0 */
++#define GPIO_UART8_TX    GPIO_UART8_TX_1    /* PE1 */
+ 
+ /* SPI
+- * SPI1 ICM45686
+- * SPI2 is OSD AT7456E
+- * SPI4 ICM42688P
++ * SPI1 OSD AT7456E
++ * SPI2 is IMU
+  */
+ 
+ #define GPIO_SPI1_MISO   GPIO_SPI1_MISO_1   /* PA6 */
+@@ -384,21 +378,18 @@
+ #define GPIO_SPI1_SCK    GPIO_SPI1_SCK_1    /* PA5 */
+ 
+ #define GPIO_SPI2_MISO   GPIO_SPI2_MISO_1   /* PB14 */
+-#define GPIO_SPI2_MOSI   GPIO_SPI2_MOSI_2   /* PC1 */
++#define GPIO_SPI2_MOSI   GPIO_SPI2_MOSI_1   /* PB15 */
+ #define GPIO_SPI2_SCK    GPIO_SPI2_SCK_4    /* PB13 */
+ 
+-#define GPIO_SPI4_MISO   GPIO_SPI4_MISO_2   /* PE5 */
+-#define GPIO_SPI4_MOSI   GPIO_SPI4_MOSI_2   /* PE6 */
+-#define GPIO_SPI4_SCK    GPIO_SPI4_SCK_2    /* PE2 */
+ 
+ /* I2C
+  */
+ 
+-#define GPIO_I2C1_SCL GPIO_I2C1_SCL_1       /* PB6  */
+-#define GPIO_I2C1_SDA GPIO_I2C1_SDA_1       /* PB7  */
++#define GPIO_I2C1_SCL GPIO_I2C1_SCL_2       /* PB8  */
++#define GPIO_I2C1_SDA GPIO_I2C1_SDA_2       /* PB9  */
+ 
+-#define GPIO_I2C1_SCL_GPIO                  (GPIO_OUTPUT | GPIO_OPENDRAIN |GPIO_SPEED_50MHz | GPIO_OUTPUT_SET | GPIO_PORTB | GPIO_PIN6)
+-#define GPIO_I2C1_SDA_GPIO                  (GPIO_OUTPUT | GPIO_OPENDRAIN |GPIO_SPEED_50MHz | GPIO_OUTPUT_SET | GPIO_PORTB | GPIO_PIN7)
++#define GPIO_I2C1_SCL_GPIO                  (GPIO_OUTPUT | GPIO_OPENDRAIN |GPIO_SPEED_50MHz | GPIO_OUTPUT_SET | GPIO_PORTB | GPIO_PIN8)
++#define GPIO_I2C1_SDA_GPIO                  (GPIO_OUTPUT | GPIO_OPENDRAIN |GPIO_SPEED_50MHz | GPIO_OUTPUT_SET | GPIO_PORTB | GPIO_PIN9)
+ 
+ /* SDMMC1
+  *
+diff --git a/boards/holybro/kakuteh7dualimu/nuttx-config/include/board_dma_map.h b/boards/winegard/kestrel/nuttx-config/include/board_dma_map.h
+index 1b076f9c64..0a3b814daa 100644
+--- a/boards/holybro/kakuteh7dualimu/nuttx-config/include/board_dma_map.h
++++ b/boards/winegard/kestrel/nuttx-config/include/board_dma_map.h
+@@ -36,11 +36,5 @@
+ #define DMAMAP_SPI2_RX    DMAMAP_DMA12_SPI2RX_1 /* DMA2 */
+ #define DMAMAP_SPI2_TX    DMAMAP_DMA12_SPI2TX_1 /* DMA2 */
+ 
+-#define DMAMAP_SPI4_RX    DMAMAP_DMA12_SPI4RX_1 /* DMA2 */
+-#define DMAMAP_SPI4_TX    DMAMAP_DMA12_SPI4TX_1 /* DMA2 */
+-
+-#define DMAMAP_USART1_RX   DMAMAP_DMA12_USART1RX_1 /* DMA2 */
+-#define DMAMAP_USART1_TX   DMAMAP_DMA12_USART1TX_1 /* DMA2 */
+-
+ #define DMAMAP_USART2_RX   DMAMAP_DMA12_USART2RX_1 /* DMA2 */
+ #define DMAMAP_USART2_TX   DMAMAP_DMA12_USART2TX_1 /* DMA2 */
+diff --git a/boards/holybro/kakuteh7dualimu/nuttx-config/nsh/defconfig b/boards/winegard/kestrel/nuttx-config/nsh/defconfig
+index 6558eb66a7..7fc7c5615d 100644
+--- a/boards/holybro/kakuteh7dualimu/nuttx-config/nsh/defconfig
++++ b/boards/winegard/kestrel/nuttx-config/nsh/defconfig
+@@ -52,7 +52,7 @@
+ # CONFIG_SPI_CALLBACK is not set
+ CONFIG_ARCH="arm"
+ CONFIG_ARCH_BOARD_CUSTOM=y
+-CONFIG_ARCH_BOARD_CUSTOM_DIR="../../../../boards/holybro/kakuteh7dualimu/nuttx-config"
++CONFIG_ARCH_BOARD_CUSTOM_DIR="../../../../boards/winegard/kestrel/nuttx-config"
+ CONFIG_ARCH_BOARD_CUSTOM_DIR_RELPATH=y
+ CONFIG_ARCH_BOARD_CUSTOM_NAME="px4"
+ CONFIG_ARCH_CHIP="stm32h7"
+@@ -76,11 +76,11 @@ CONFIG_BUILTIN=y
+ CONFIG_CDCACM=y
+ CONFIG_CDCACM_IFLOWCONTROL=y
+ CONFIG_CDCACM_PRODUCTID=0x0050
+-CONFIG_CDCACM_PRODUCTSTR="PX4 KakuteH7"
++CONFIG_CDCACM_PRODUCTSTR="PX4 KestrelH7"
+ CONFIG_CDCACM_RXBUFSIZE=600
+ CONFIG_CDCACM_TXBUFSIZE=12000
+ CONFIG_CDCACM_VENDORID=0x3162
+-CONFIG_CDCACM_VENDORSTR="Holybro"
++CONFIG_CDCACM_VENDORSTR="Winegard"
+ CONFIG_DEBUG_FULLOPT=y
+ CONFIG_DEBUG_HARDFAULT_ALERT=y
+ CONFIG_DEBUG_MEMFAULT=y
+@@ -146,6 +146,7 @@ CONFIG_PIPES=y
+ CONFIG_PREALLOC_TIMERS=50
+ CONFIG_PRIORITY_INHERITANCE=y
+ CONFIG_PTHREAD_MUTEX_ROBUST=y
++CONFIG_PTHREAD_MUTEX_TYPES=y
+ CONFIG_PTHREAD_STACK_MIN=512
+ CONFIG_RAM_SIZE=245760
+ CONFIG_RAM_START=0x20010000
+@@ -201,9 +202,9 @@ CONFIG_STM32H7_SPI1=y
+ CONFIG_STM32H7_SPI2=y
+ CONFIG_STM32H7_SPI2_DMA=y
+ CONFIG_STM32H7_SPI2_DMA_BUFFER=1024
+-CONFIG_STM32H7_SPI4=y
+-CONFIG_STM32H7_SPI4_DMA=y
+-CONFIG_STM32H7_SPI4_DMA_BUFFER=1024
++#CONFIG_STM32H7_SPI4 is not set
++#CONFIG_STM32H7_SPI4_DMA is not set
++#CONFIG_STM32H7_SPI4_DMA_BUFFER is not set
+ CONFIG_STM32H7_UART4=y
+ CONFIG_STM32H7_UART7=y
+ CONFIG_STM32H7_USART1=y
+@@ -227,9 +228,9 @@ CONFIG_UART7_RXBUFSIZE=600
+ CONFIG_UART7_TXBUFSIZE=1500
+ CONFIG_USART1_BAUD=57600
+ CONFIG_USART1_RXBUFSIZE=600
+-CONFIG_USART1_RXDMA=y
++# CONFIG_USART1_RXDMA=y
+ CONFIG_USART1_TXBUFSIZE=1500
+-CONFIG_USART1_TXDMA=y
++# CONFIG_USART1_TXDMA=y
+ CONFIG_USART2_BAUD=57600
+ CONFIG_USART2_RXBUFSIZE=600
+ CONFIG_USART2_RXDMA=y
+diff --git a/boards/holybro/kakuteh7dualimu/nuttx-config/scripts/bootloader_script.ld b/boards/winegard/kestrel/nuttx-config/scripts/bootloader_script.ld
+index fc0a5589be..982d4beaea 100644
+--- a/boards/holybro/kakuteh7dualimu/nuttx-config/scripts/bootloader_script.ld
++++ b/boards/winegard/kestrel/nuttx-config/scripts/bootloader_script.ld
+@@ -34,7 +34,7 @@
+  *
+  ****************************************************************************/
+ 
+-/* The KakuteH7 uses an STM32H743VI has 2048Kb of main FLASH memory.
++/* The Winegard Kestrel uses an STM32H743VI has 2048Kb of main FLASH memory.
+  * The flash memory is partitioned into a User Flash memory and a System
+  * Flash memory. Each of these memories has two banks:
+  *
+@@ -59,7 +59,7 @@
+  *   2) BOOT=1: Boot address defined by user option byte BOOT_ADD1[15:0].
+  *      ST programmed value: System bootloader at 0x1FF0:0000
+  *
+- * The KakuteH7 has a switch on board, the BOOT0 pin is at ground so by default,
++ * The Winegard Kestrel has a switch on board, the BOOT0 pin is at ground so by default,
+  * the STM32 will boot to address 0x0800:0000 in FLASH unless the switch is
+  * depressed, then the boot will be from 0x1FF0:0000
+  *
+@@ -132,20 +132,12 @@ ENTRY(_stext)
+  * code pulled in by libgcc.a requires it (and that code cannot be easily avoided).
+  */
+ EXTERN(abort)
+-EXTERN(_bootdelay_signature)
+-
+ SECTIONS
+ {
+ 	.text : {
+ 		_stext = ABSOLUTE(.);
+ 		*(.vectors)
+ 		. = ALIGN(32);
+-		/*
+-		This signature provides the bootloader with a way to delay booting
+-		*/
+-		_bootdelay_signature = ABSOLUTE(.);
+-		FILL(0xffecc2925d7d05c5)
+-		. += 8;
+ 		*(.text .text.*)
+ 		*(.fixup)
+ 		*(.gnu.warning)
+diff --git a/boards/holybro/kakuteh7dualimu/nuttx-config/scripts/script.ld b/boards/winegard/kestrel/nuttx-config/scripts/script.ld
+index 31780fad15..8f3bf74f12 100644
+--- a/boards/holybro/kakuteh7dualimu/nuttx-config/scripts/script.ld
++++ b/boards/winegard/kestrel/nuttx-config/scripts/script.ld
+@@ -34,7 +34,7 @@
+  *
+  ****************************************************************************/
+ 
+-/* The KakuteH7 uses an STM32H743VI has 2048Kb of main FLASH memory.
++/* The Winegard Kestrel uses an STM32H743VI has 2048Kb of main FLASH memory.
+  * The flash memory is partitioned into a User Flash memory and a System
+  * Flash memory. Each of these memories has two banks:
+  *
+@@ -59,7 +59,7 @@
+  *   2) BOOT=1: Boot address defined by user option byte BOOT_ADD1[15:0].
+  *      ST programmed value: System bootloader at 0x1FF0:0000
+  *
+- * The KakuteH7 has a switch on board, the BOOT0 pin is at ground so by default,
++ * The Winegard Kestrel has a switch on board, the BOOT0 pin is at ground so by default,
+  * the STM32 will boot to address 0x0800:0000 in FLASH unless the switch is
+  * depressed, then the boot will be from 0x1FF0:0000
+  *
+@@ -131,20 +131,12 @@ ENTRY(_stext)
+  * code pulled in by libgcc.a requires it (and that code cannot be easily avoided).
+  */
+ EXTERN(abort)
+-EXTERN(_bootdelay_signature)
+-
+ SECTIONS
+ {
+ 	.text : {
+ 		_stext = ABSOLUTE(.);
+ 		*(.vectors)
+ 		. = ALIGN(32);
+-		/*
+-		This signature provides the bootloader with a way to delay booting
+-		*/
+-		_bootdelay_signature = ABSOLUTE(.);
+-		FILL(0xffecc2925d7d05c5)
+-		. += 8;
+ 		*(.text .text.*)
+ 		*(.fixup)
+ 		*(.gnu.warning)
+diff --git a/boards/holybro/kakuteh7dualimu/src/board_config.h b/boards/winegard/kestrel/src/board_config.h
+index 01b7787df6..3b27767392 100644
+--- a/boards/holybro/kakuteh7dualimu/src/board_config.h
++++ b/boards/winegard/kestrel/src/board_config.h
+@@ -34,7 +34,7 @@
+ /**
+  * @file board_config.h
+  *
+- * holybro KakuteH7 internal definitions
++ * Winegard Kestrel internal definitions
+  */
+ 
+ #pragma once
+@@ -59,16 +59,20 @@
+ #  define BOARD_HAS_NBAT_V              1
+ #  define BOARD_HAS_NBAT_I              1
+ 
+-/* Holybro KakuteH7 GPIOs ************************************************************************/
++/* Winegard Kestrel GPIOs ************************************************************************/
+ 
+-/* LEDs are driven with push open drain to support Anode to 5V or 3.3V */
+-
+-#define GPIO_LED_RED        /* PE9 */  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTE|GPIO_PIN9)
+-#define GPIO_nLED_BLUE        /* PC2 */  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTC|GPIO_PIN2)
++/* LED is driven with open drain */
++#define GPIO_nLED_GREEN        /* PC13 */  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN13)
+ 
+ #define BOARD_HAS_CONTROL_STATUS_LEDS      1
+-#define BOARD_OVERLOAD_LED     LED_RED
+-#define BOARD_ARMED_STATE_LED  LED_BLUE
++#define BOARD_OVERLOAD_LED     LED_GREEN
++
++#define GPIO_LED_BLUE     GPIO_nLED_GREEN
++#define GPIO_LED_GREEN    GPIO_nLED_GREEN
++#define GPIO_LED_RED      GPIO_nLED_GREEN
++
++#define GPIO_nLED_BLUE    GPIO_nLED_GREEN
++#define GPIO_nLED_RED     GPIO_nLED_GREEN
+ 
+ /*
+  * ADC channels
+@@ -86,21 +90,21 @@
+ /* Define GPIO pins used as ADC N.B. Channel numbers must match below */
+ 
+ #define PX4_ADC_GPIO  \
+-	/* PC4 */  GPIO_ADC12_INP4, \
+-	/* PC5 */  GPIO_ADC12_INP8, \
+-	/* PC0 */  GPIO_ADC123_INP10
++	/* PC2 */  GPIO_ADC123_INP12, \
++	/* PC3 */  GPIO_ADC12_INP13, \
++	/* PC5 */  GPIO_ADC12_INP8
+ 
+ /* Define Channel numbers must match above GPIO pin IN(n)*/
+ 
+-#define ADC_BATTERY_CURRENT_CHANNEL        /* PC4 */  ADC1_CH(4)
+-#define ADC_BATTERY_VOLTAGE_CHANNEL        /* PC5 */  ADC1_CH(8)
+-#define ADC_RC_RSSI_CHANNEL                /* PC0 */  ADC1_CH(10)
++#define ADC_BATTERY_VOLTAGE_CHANNEL        /* PC3 */  ADC1_CH(13)
++#define ADC_BATTERY_CURRENT_CHANNEL        /* PC2 */  ADC1_CH(12)
++#define ADC_RSSI_IN_CHANNEL                /* PC5 */  ADC1_CH(8)
+ 
+ 
+ #define ADC_CHANNELS \
+ 	((1 << ADC_BATTERY_VOLTAGE_CHANNEL)       | \
+ 	 (1 << ADC_BATTERY_CURRENT_CHANNEL)       | \
+-	 (1 << ADC_RC_RSSI_CHANNEL))
++	 (1 << ADC_RSSI_IN_CHANNEL))
+ 
+ #define BOARD_ADC_OPEN_CIRCUIT_V     (5.6f)
+ 
+@@ -115,23 +119,26 @@
+ 
+ /* Tone alarm output */
+ 
+-#define TONE_ALARM_TIMER        15  /* timer 15 */
+-#define TONE_ALARM_CHANNEL      2  /* PA3 TIM15_CH2 */
++#define TONE_ALARM_TIMER        4  /* timer 4 */
++#define TONE_ALARM_CHANNEL      4  /* PD15 TIM4_CH4 */
++
++#define GPIO_BUZZER_1           /* PD15 */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTD|GPIO_PIN15)
+ 
+-#define GPIO_BUZZER_1           /* PA3 */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTA|GPIO_PIN3)
++//#define GPIO_TONE_ALARM_IDLE    /* PD15 */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTD|GPIO_PIN15)
++#define GPIO_TONE_ALARM_GPIO    /* PD15 */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTD|GPIO_PIN15)
+ 
+ #define GPIO_TONE_ALARM_IDLE    GPIO_BUZZER_1
+-#define GPIO_TONE_ALARM         GPIO_TIM15_CH2OUT_1
++#define GPIO_TONE_ALARM         GPIO_TIM4_CH4OUT_1
+ 
+ /* USB OTG FS
+  *
+  * PA9  OTG_FS_VBUS VBUS sensing
+  */
+-#define GPIO_OTGFS_VBUS         /* PA8 */ (GPIO_INPUT|GPIO_PULLDOWN|GPIO_SPEED_100MHz|GPIO_PORTA|GPIO_PIN8)
++#define GPIO_OTGFS_VBUS         /* PA8 */ (GPIO_INPUT|GPIO_PULLDOWN|GPIO_SPEED_100MHz|GPIO_PORTA|GPIO_PIN9)
+ 
+ /* High-resolution timer */
+-#define HRT_TIMER               8  /* use timer8 for the HRT */
+-#define HRT_TIMER_CHANNEL       1  /* use capture/compare channel 1 */
++#define HRT_TIMER               5  /* use timer5 for the HRT */
++#define HRT_TIMER_CHANNEL       2  /* use capture/compare channel 2 */
+ 
+ /* RC Serial port */
+ 
+@@ -141,12 +148,12 @@
+ //#define PWMIN_TIMER_CHANNEL    /* T5C1 */ 1
+ //#define GPIO_PWM_IN            /* PA0  */ GPIO_TIM5_CH1IN
+ 
+-// PPM in on Serial Rx (R6)
+-#define HRT_PPM_CHANNEL         /* TIM8CH2 */  2  /* use capture/compare channel 2 */
+-#define GPIO_PPM_IN             /* PC7 */ GPIO_TIM8_CH2IN_1
++// // PPM in on Serial Rx (R6)
++// #define HRT_PPM_CHANNEL         /* TIM8CH2 */  2  /* use capture/compare channel 2 */
++// #define GPIO_PPM_IN             /* PC7 */ GPIO_TIM8_CH2IN_1
+ 
+-#define RC_SERIAL_PORT                     "/dev/ttyS4" // USART6
+-#define RC_SERIAL_PORT_SHARED_PPM_PIN_GPIO_RX             GPIO_USART6_RX
++// #define RC_SERIAL_PORT                     "/dev/ttyS4" // USART6
++// #define RC_SERIAL_PORT_SHARED_PPM_PIN_GPIO_RX             GPIO_USART6_RX
+ 
+ /* Power switch controls ******************************************************/
+ 
+@@ -183,11 +190,8 @@
+ 
+ #define PX4_GPIO_INIT_LIST { \
+ 		PX4_ADC_GPIO,                     \
+-		GPIO_LED_RED,                     \
+-		GPIO_nLED_BLUE,                     \
++		GPIO_nLED_GREEN,                     \
+ 		GPIO_BUZZER_1,             \
+-		GPIO_CAN1_TX,                     \
+-		GPIO_CAN1_RX,                     \
+ 	}
+ 
+ #define BOARD_ENABLE_CONSOLE_BUFFER
+diff --git a/boards/holybro/kakuteh7dualimu/src/hw_config.h b/boards/winegard/kestrel/src/hw_config.h
+index 9620345ff3..35dc4e277d 100644
+--- a/boards/holybro/kakuteh7dualimu/src/hw_config.h
++++ b/boards/winegard/kestrel/src/hw_config.h
+@@ -28,8 +28,6 @@
+  * INTERFACE_USART      1                     - (Optional) Scan and use the Serial interface for bootloading
+  * USBDEVICESTRING      "PX4 BL FMU v2.x"     - USB id string
+  * USBPRODUCTID         0x0011                - PID Should match defconfig
+- * BOOT_DELAY_ADDRESS   0x000001a0            - (Optional) From the linker script from Linker Script to get a custom
+- *                                               delay provided by an APP FW
+  * BOARD_TYPE           9                     - Must match .prototype boad_id
+  * _FLASH_KBYTES        (*(uint16_t *)0x1fff7a22) - Run time flash size detection
+  * BOARD_FLASH_SECTORS  ((_FLASH_KBYTES == 0x400) ? 11 : 23) - Run time determine the physical last sector
+@@ -62,13 +60,13 @@
+ #define SERIAL1_DEV    0x04
+ 
+ #define APP_LOAD_ADDRESS               0x08020000
++#define BOOT_DELAY_ADDRESS 	       0x000001a0
+ #define BOOTLOADER_DELAY               3000
+ #define INTERFACE_USB                  1
+ #define INTERFACE_USB_CONFIG           "/dev/ttyACM0"
+ #define BOARD_VBUS                     MK_GPIO_INPUT(GPIO_OTGFS_VBUS)
+ 
+ //#define USE_VBUS_PULL_DOWN
+-#define BOOT_DELAY_ADDRESS             0x000001a0
+ #define BOARD_TYPE                     5409
+ #define BOARD_FLASH_SECTORS            (14)
+ #define BOARD_FLASH_SIZE               (16 * 128 * 1024)
+@@ -76,7 +74,7 @@
+ 
+ #define OSC_FREQ                       8
+ 
+-#define BOARD_PIN_LED_ACTIVITY         GPIO_LED_RED
++#define BOARD_PIN_LED_ACTIVITY         GPIO_nLED_GREEN
+ #define BOARD_LED_ON                   0
+ #define BOARD_LED_OFF                  1
+ 
+diff --git a/boards/holybro/kakuteh7dualimu/src/i2c.cpp b/boards/winegard/kestrel/src/i2c.cpp
+index e9f26f9a9e..547a8bc1ae 100644
+--- a/boards/holybro/kakuteh7dualimu/src/i2c.cpp
++++ b/boards/winegard/kestrel/src/i2c.cpp
+@@ -34,5 +34,6 @@
+ #include <px4_arch/i2c_hw_description.h>
+ 
+ constexpr px4_i2c_bus_t px4_i2c_buses[I2C_BUS_MAX_BUS_ITEMS] = {
+-	initI2CBusExternal(1),
++	//initI2CBusExternal(1),
++	initI2CBusInternal(1),
+ };
+diff --git a/boards/holybro/kakuteh7dualimu/src/init.c b/boards/winegard/kestrel/src/init.c
+index 2e0210981f..ed086b5d8b 100644
+--- a/boards/holybro/kakuteh7dualimu/src/init.c
++++ b/boards/winegard/kestrel/src/init.c
+@@ -97,6 +97,7 @@
+  */
+ __BEGIN_DECLS
+ extern void led_init(void);
++extern void led_toggle(int led);
+ extern void led_on(int led);
+ extern void led_off(int led);
+ __END_DECLS
+@@ -224,17 +225,28 @@ __EXPORT int board_app_initialize(uintptr_t arg)
+ 
+ 	/* initial LED state */
+ 	drv_led_start();
+-	led_off(LED_RED);
++	led_off(LED_GREEN);
++
++	for ( int i = 0; i < 20; i++)
++	{
++		led_toggle(LED_GREEN);
++		up_mdelay(100);
++	}
++	led_off(LED_GREEN);
+ 
+ 	if (board_hardfault_init(2, true) != 0) {
+-		led_on(LED_RED);
++		//led_on(LED_RED);
+ 	}
+ 
+ #  ifdef CONFIG_MMCSD
+ 	int ret = stm32_sdio_initialize();
+ 
+ 	if (ret != OK) {
+-		led_on(LED_RED);
++		for ( int i = 0; i < 6; i++)
++		{
++			led_toggle(LED_GREEN);
++			up_mdelay(1000);
++		}
+ 	}
+ 
+ #  endif /* CONFIG_MMCSD */
+@@ -253,7 +265,6 @@ __EXPORT int board_app_initialize(uintptr_t arg)
+ 
+ 	if (ret != OK) {
+ 		syslog(LOG_ERR, "[boot] FAILED to init params in FLASH %d\n", ret);
+-		led_on(LED_AMBER);
+ 	}
+ 
+ #endif
+diff --git a/boards/holybro/kakuteh7dualimu/src/led.c b/boards/winegard/kestrel/src/led.c
+index 12e0b50505..aa734f714c 100644
+--- a/boards/holybro/kakuteh7dualimu/src/led.c
++++ b/boards/winegard/kestrel/src/led.c
+@@ -49,17 +49,10 @@
+  * separate switch, we need to build independent of the
+  * CONFIG_ARCH_LEDS configuration switch.
+  *
+- * KakuteH7 DualIMU LED configuration:
+- * - Red LED (PE9): TRIP LED, active high
+- * - Blue LED (PC2): Status LED, active low
+- * - Green LED: Hardware controlled, always on when powered (no software control)
++ *  Winegard_Kestrel only controls 1 green LED @ GPIO PC13
++ *  active low
++ * - Red LED: Hardware controlled, always on when powered (no software control)
+  */
+-__BEGIN_DECLS
+-extern void led_init(void);
+-extern void led_on(int led);
+-extern void led_off(int led);
+-extern void led_toggle(int led);
+-__END_DECLS
+ 
+ #ifdef CONFIG_ARCH_LEDS
+ static bool nuttx_owns_leds = true;
+@@ -80,14 +73,17 @@ static bool g_led_inverted[] = {
+ #else
+ 
+ #  define xlat(p) (p)
++
+ static uint32_t g_ledmap[] = {
+-	GPIO_nLED_BLUE,                     // Indexed by LED_BLUE
+-	GPIO_LED_RED,                       // Indexed by LED_RED
++    GPIO_nLED_GREEN,   // RED
++    GPIO_nLED_GREEN,   // BLUE
++    GPIO_nLED_GREEN    // GREEN
+ };
+ 
+ static bool g_led_inverted[] = {
+-	true, // LED blue is active low
+-	false, // LED_RED is active high
++    true,
++    true,
++    true
+ };
+ 
+ #endif
+diff --git a/boards/holybro/kakuteh7dualimu/src/spi.cpp b/boards/winegard/kestrel/src/spi.cpp
+index ec4f04b057..8a20a1ecfd 100644
+--- a/boards/holybro/kakuteh7dualimu/src/spi.cpp
++++ b/boards/winegard/kestrel/src/spi.cpp
+@@ -37,13 +37,10 @@
+ 
+ constexpr px4_spi_bus_t px4_spi_buses[SPI_BUS_MAX_BUS_ITEMS] = {
+ 	initSPIBus(SPI::Bus::SPI1, {
+-		initSPIDevice(DRV_OSD_DEVTYPE_ATXXXX, SPI::CS{GPIO::PortA, GPIO::Pin4}),
++		initSPIDevice(DRV_OSD_DEVTYPE_ATXXXX, SPI::CS{GPIO::PortA, GPIO::Pin4})
+ 	}),
+ 	initSPIBus(SPI::Bus::SPI2, {
+-		initSPIDevice(DRV_IMU_DEVTYPE_ICM42688P, SPI::CS{GPIO::PortB, GPIO::Pin12}, SPI::DRDY{GPIO::PortE, GPIO::Pin13}),
+-	}),
+-	initSPIBus(SPI::Bus::SPI4, {
+-		initSPIDevice(DRV_IMU_DEVTYPE_ICM45686, SPI::CS{GPIO::PortE, GPIO::Pin4}, SPI::DRDY{GPIO::PortE, GPIO::Pin1}),
++		initSPIDevice(DRV_IMU_DEVTYPE_ICM42605, SPI::CS{GPIO::PortB, GPIO::Pin12}, SPI::DRDY{GPIO::PortD, GPIO::Pin0}),
+ 	}),
+ };
+ 
+diff --git a/boards/holybro/kakuteh7dualimu/src/timer_config.cpp b/boards/winegard/kestrel/src/timer_config.cpp
+index aa48eabe6a..779e25d2ff 100644
+--- a/boards/holybro/kakuteh7dualimu/src/timer_config.cpp
++++ b/boards/winegard/kestrel/src/timer_config.cpp
+@@ -35,21 +35,21 @@
+ 
+ constexpr io_timers_t io_timers[MAX_IO_TIMERS] = {
+ 	initIOTimer(Timer::Timer3, DMA{DMA::Index1}),
+-	initIOTimer(Timer::Timer2, DMA{DMA::Index1}),
+-	initIOTimer(Timer::Timer5, DMA{DMA::Index1}),
+ 	initIOTimer(Timer::Timer4, DMA{DMA::Index1}),
++	initIOTimer(Timer::Timer2, DMA{DMA::Index1}),
++	initIOTimer(Timer::Timer1, DMA{DMA::Index1}),
+ };
+ 
+ constexpr timer_io_channels_t timer_io_channels[MAX_TIMER_IO_CHANNELS] = {
++	initIOTimerChannel(io_timers, {Timer::Timer3, Timer::Channel1}, {GPIO::PortB, GPIO::Pin4}),
++	initIOTimerChannel(io_timers, {Timer::Timer3, Timer::Channel2}, {GPIO::PortB, GPIO::Pin5}),
+ 	initIOTimerChannel(io_timers, {Timer::Timer3, Timer::Channel3}, {GPIO::PortB, GPIO::Pin0}),
+ 	initIOTimerChannel(io_timers, {Timer::Timer3, Timer::Channel4}, {GPIO::PortB, GPIO::Pin1}),
++	initIOTimerChannel(io_timers, {Timer::Timer4, Timer::Channel1}, {GPIO::PortB, GPIO::Pin6}),
++	initIOTimerChannel(io_timers, {Timer::Timer4, Timer::Channel2}, {GPIO::PortB, GPIO::Pin7}),
+ 	initIOTimerChannel(io_timers, {Timer::Timer2, Timer::Channel3}, {GPIO::PortB, GPIO::Pin10}),
+ 	initIOTimerChannel(io_timers, {Timer::Timer2, Timer::Channel4}, {GPIO::PortB, GPIO::Pin11}),
+-	initIOTimerChannel(io_timers, {Timer::Timer5, Timer::Channel1}, {GPIO::PortA, GPIO::Pin0}),
+-	initIOTimerChannel(io_timers, {Timer::Timer5, Timer::Channel3}, {GPIO::PortA, GPIO::Pin2}),
+-	initIOTimerChannel(io_timers, {Timer::Timer4, Timer::Channel1}, {GPIO::PortD, GPIO::Pin12}),
+-	initIOTimerChannel(io_timers, {Timer::Timer4, Timer::Channel2}, {GPIO::PortD, GPIO::Pin13}),
+-};
++	};
+ 
+ constexpr io_timers_channel_mapping_t io_timers_channel_mapping =
+ 	initIOTimerChannelMapping(io_timers, timer_io_channels);

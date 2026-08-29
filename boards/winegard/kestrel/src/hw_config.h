@@ -67,7 +67,7 @@
 #define BOARD_VBUS                     MK_GPIO_INPUT(GPIO_OTGFS_VBUS)
 
 //#define USE_VBUS_PULL_DOWN
-#define BOARD_TYPE                     5409
+#define BOARD_TYPE                     2026
 #define BOARD_FLASH_SECTORS            (14)
 #define BOARD_FLASH_SIZE               (16 * 128 * 1024)
 #define APP_RESERVATION_SIZE           (2 * 128 * 1024)
