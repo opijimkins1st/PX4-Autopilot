@@ -17,6 +17,10 @@
 # The set does not include a battery, but most people will probably use 6S
 param set-default BAT1_N_CELLS 6
 
+param set-default SYS_HAS_MAG 1
+
+# param set-default SENS_EXT_I2C_PRB 1
+
 param set-default IMU_GYRO_CUTOFF 120
 param set-default IMU_DGYRO_CUTOFF 45
 

@@ -9,3 +9,6 @@ icm42605 -R 0 -s start
 
 # bmp581 baro on I2C1
 bmp581 start -I
+
+# qmc5883l magnetometer on I2C1
+qmc5883l start -I

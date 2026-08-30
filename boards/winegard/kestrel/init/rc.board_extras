@@ -10,3 +10,6 @@ fi
 
 # DShot telemetry is always on UART8
 dshot telemetry -d /dev/ttyS6
+
+# QMC5883L magnetometer on I2C1 (internal bus)
+qmc5883l start -I
