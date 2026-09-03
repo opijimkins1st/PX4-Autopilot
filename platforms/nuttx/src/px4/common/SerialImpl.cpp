@@ -266,7 +266,7 @@ bool SerialImpl::close()
 ssize_t SerialImpl::bytesAvailable()
 {
 	if (!_open) {
-		PX4_ERR("Device not open!");
+		PX4_ERR("Device not open! (%s)", _port);
 		return -1;
 	}
 

@@ -5,7 +5,7 @@
 board_adc start
 
 # Winegard Kestrel has an onboard ICM-42605 IMU on SPI2.
-icm42605 -R 0 -s start
+icm42605 -R 6 -s start
 
 # bmp581 baro on I2C1
 bmp581 start -I

@@ -82,10 +82,6 @@ __EXPORT void stm32_usbinitialize(void)
 	/* The OTG FS has an internal soft pull-up */
 
 	/* Configure the OTG FS VBUS sensing GPIO, Power On, and Overcurrent GPIOs */
-
-#ifdef CONFIG_STM32H7_OTGFS
-	stm32_configgpio(GPIO_OTGFS_VBUS);
-#endif
 }
 
 /************************************************************************************
@@ -102,4 +98,19 @@ __EXPORT void stm32_usbinitialize(void)
 __EXPORT void stm32_usbsuspend(FAR struct usbdev_s *dev, bool resume)
 {
 	uinfo("resume: %d\n", resume);
+}
+
+/************************************************************************************
+ * Name: board_read_VBUS_state
+ *
+ * Description:
+ *   VBUS sensing GPIO removed (PA9 needed for USART1_TX / RC). Always report
+ *   connected via VBUS detection; USB still functions normally, this only
+ *   affects USB-presence reporting used by cdcacm_autostart/usb_connected.
+ *
+ ************************************************************************************/
+
+int board_read_VBUS_state(void)
+{
+	return 0; /* always connected */
 }
