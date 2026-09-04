@@ -144,6 +144,8 @@
  */
 //#define GPIO_OTGFS_VBUS         /* PA8 */ (GPIO_INPUT|GPIO_PULLDOWN|GPIO_SPEED_100MHz|GPIO_PORTA|GPIO_PIN9)
 
+#define BOARD_USB_VBUS_SENSE_DISABLED
+
 /* High-resolution timer */
 #define HRT_TIMER               5  /* use timer5 for the HRT */
 #define HRT_TIMER_CHANNEL       2  /* use capture/compare channel 2 */

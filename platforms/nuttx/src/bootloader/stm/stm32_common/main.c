@@ -318,8 +318,10 @@ board_deinit(void)
 #endif
 
 #if INTERFACE_USB
-	px4_arch_configgpio(MK_GPIO_INPUT(GPIO_OTGFS_VBUS));
-	putreg32(RCC_AHB1RSTR_OTGFSRST, STM32_RCC_AHB1RSTR);
+#if !defined(BOARD_USB_VBUS_SENSE_DISABLED)
+        px4_arch_configgpio(MK_GPIO_INPUT(GPIO_OTGFS_VBUS));
+#endif
+        putreg32(RCC_AHB1RSTR_OTGFSRST, STM32_RCC_AHB1RSTR);
 #endif
 
 #if defined(BOARD_FORCE_BL_PIN_IN) && defined(BOARD_FORCE_BL_PIN_OUT)
