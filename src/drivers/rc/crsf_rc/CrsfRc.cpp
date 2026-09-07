@@ -133,15 +133,21 @@ void CrsfRc::Run()
 	}
 
 	if (_uart == nullptr) {
-		// Create the UART port instance
-		_uart = new Serial(_device);
+	// Create the UART port instance
+	_uart = new Serial();
 
-		if (_uart == nullptr) {
-			PX4_ERR("Error creating serial device %s", _device);
-			px4_sleep(1);
-			return;
-		}
+	if (_uart == nullptr) {
+		PX4_ERR("Error creating serial device %s", _device);
+		px4_sleep(1);
+		return;
 	}
+
+	if (!_uart->setPort(_device)) {
+		PX4_ERR("Error configuring serial device on port %s", _device);
+		px4_sleep(1);
+		return;
+	}
+}
 
 	if (! _uart->isOpen()) {
 		// Configure the desired baudrate if one was specified by the user.
@@ -512,6 +518,42 @@ int CrsfRc::print_status()
 	PX4_INFO_RAW("Invalid CRCs: %" PRIu32 "\n", _packet_parser_statistics.crcs_invalid);
 	PX4_INFO_RAW("Invalid known packet sizes: %" PRIu32 "\n", _packet_parser_statistics.invalid_known_packet_sizes);
 	PX4_INFO_RAW("Invalid unknown packet sizes: %" PRIu32 "\n", _packet_parser_statistics.invalid_unknown_packet_sizes);
+
+	volatile uint32_t *usart1_cr1 = (volatile uint32_t *)0x40011000;
+	volatile uint32_t *usart1_isr = (volatile uint32_t *)0x4001101C;
+	uint32_t cr1_val = *usart1_cr1;
+	uint32_t isr_val = *usart1_isr;
+	PX4_INFO_RAW("USART1 CR1 = 0x%08lx (UE=%d RE=%d RXNEIE=%d)\n",
+		     (unsigned long)cr1_val,
+		     (int)((cr1_val >> 0) & 1),
+		     (int)((cr1_val >> 2) & 1),
+		     (int)((cr1_val >> 5) & 1));
+	PX4_INFO_RAW("USART1 ISR = 0x%08lx (RXNE=%d ORE=%d)\n",
+		     (unsigned long)isr_val,
+		     (int)((isr_val >> 5) & 1),
+		     (int)((isr_val >> 3) & 1));
+
+	volatile uint32_t *rcc_apb2enr = (volatile uint32_t *)0x580244F0;
+	uint32_t apb2enr_val = *rcc_apb2enr;
+	PX4_INFO_RAW("RCC_APB2ENR = 0x%08lx (USART1EN=%d)\n",
+		     (unsigned long)apb2enr_val,
+		     (int)((apb2enr_val >> 4) & 1));
+		     
+	PX4_INFO_RAW("board_rc_swap_rxtx result: %d\n", (int)board_rc_swap_rxtx(_device));
+
+	volatile uint32_t *usart6_cr1 = (volatile uint32_t *)0x40011400;
+	volatile uint32_t *usart6_isr = (volatile uint32_t *)0x4001141C;
+	uint32_t cr1_val6 = *usart6_cr1;
+	uint32_t isr_val6 = *usart6_isr;
+	PX4_INFO_RAW("USART6 CR1 = 0x%08lx (UE=%d RE=%d RXNEIE=%d)\n",
+		     (unsigned long)cr1_val6,
+		     (int)((cr1_val6 >> 0) & 1),
+		     (int)((cr1_val6 >> 2) & 1),
+		     (int)((cr1_val6 >> 5) & 1));
+	PX4_INFO_RAW("USART6 ISR = 0x%08lx (RXNE=%d ORE=%d)\n",
+		     (unsigned long)isr_val6,
+		     (int)((isr_val6 >> 5) & 1),
+		     (int)((isr_val6 >> 3) & 1));
 
 	return 0;
 }
