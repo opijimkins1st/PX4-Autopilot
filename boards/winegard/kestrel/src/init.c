@@ -100,6 +100,7 @@ extern void led_init(void);
 extern void led_toggle(int led);
 extern void led_on(int led);
 extern void led_off(int led);
+extern void heartbeat_led_init(void);
 __END_DECLS
 
 
@@ -155,10 +156,6 @@ stm32_boardinitialize(void)
 {
 	board_on_reset(-1); /* Reset PWM first thing */
 
-	/* configure LEDs */
-
-	board_autoled_initialize();
-
 	/* configure pins */
 
 	const uint32_t gpio[] = PX4_GPIO_INIT_LIST;
@@ -206,6 +203,11 @@ __EXPORT int board_app_initialize(uintptr_t arg)
 	/* Need hrt running before using the ADC */
 
 	px4_platform_init();
+
+	/*LED heartbeat init*/
+
+	heartbeat_led_init();
+
 
 	/* configure SPI interfaces */
 

@@ -42,51 +42,27 @@
 #include <nuttx/board.h>
 #include <arch/board/board.h>
 
+#include <drivers/drv_hrt.h>
+
 /*
- * Ideally we'd be able to get these from arm_internal.h,
- * but since we want to be able to disable the NuttX use
- * of leds for system indication at will and there is no
- * separate switch, we need to build independent of the
- * CONFIG_ARCH_LEDS configuration switch.
+ * Winegard Kestrel has a single green status LED on GPIO PC13, active low.
+ * Red LED is hardware-controlled (always on when powered, no software control).
  *
- *  Winegard_Kestrel only controls 1 green LED @ GPIO PC13
- *  active low
- * - Red LED: Hardware controlled, always on when powered (no software control)
+ * This board has no RGB LED and never will. All indices (RED/BLUE/GREEN)
+ * alias to the same physical pin -- PX4 core code (commander, led.cpp)
+ * calls led_on/off/toggle with an LED_* index, so that signature is kept
+ * even though there's only one real LED.
  */
 
-#ifdef CONFIG_ARCH_LEDS
-static bool nuttx_owns_leds = true;
-//                                B  R  S  G
-//                                0  1  2  3
-static const uint8_t xlatpx4[] = {1, 0, 4, 2};
-#  define xlat(p) xlatpx4[(p)]
 static uint32_t g_ledmap[] = {
-	GPIO_LED_RED,                       // Indexed by BOARD_LED_RED
-	GPIO_nLED_BLUE,                     // Indexed by BOARD_LED_BLUE
+	GPIO_nLED_GREEN,   // RED
+	GPIO_nLED_GREEN,   // BLUE
+	GPIO_nLED_GREEN    // GREEN
 };
 
-static bool g_led_inverted[] = {
-	false, // LED_RED is active high
-	true,  // LED_BLUE is active low
-};
+static bool g_led_inverted[] = { true, true, true };
 
-#else
-
-#  define xlat(p) (p)
-
-static uint32_t g_ledmap[] = {
-    GPIO_nLED_GREEN,   // RED
-    GPIO_nLED_GREEN,   // BLUE
-    GPIO_nLED_GREEN    // GREEN
-};
-
-static bool g_led_inverted[] = {
-    true,
-    true,
-    true
-};
-
-#endif
+#define xlat(p) (p)
 
 __EXPORT void led_init(void)
 {
@@ -99,8 +75,6 @@ __EXPORT void led_init(void)
 
 static void phy_set_led(int led, bool state)
 {
-	/* Drive Low to switch on */
-
 	if (g_ledmap[led] != 0) {
 		stm32_gpiowrite(g_ledmap[led], g_led_inverted[led] ? !state : state);
 	}
@@ -108,7 +82,6 @@ static void phy_set_led(int led, bool state)
 
 static bool phy_get_led(int led)
 {
-	/* If Low it is on */
 	if (g_ledmap[led] != 0) {
 		bool value = stm32_gpioread(g_ledmap[led]);
 		return g_led_inverted[led] ? !value : value;
@@ -132,106 +105,20 @@ __EXPORT void led_toggle(int led)
 	phy_set_led(xlat(led), !phy_get_led(xlat(led)));
 }
 
-#ifdef CONFIG_ARCH_LEDS
 /****************************************************************************
- * Public Functions
+ * Heartbeat: blinks the LED at 1Hz to indicate the system is alive,
+ * independent of commander/arming/overload state.
  ****************************************************************************/
 
-/****************************************************************************
- * Name: board_autoled_initialize
- ****************************************************************************/
+static struct hrt_call _heartbeat_call;
 
-void board_autoled_initialize(void)
+static void heartbeat_tick(void *arg)
+{
+	led_toggle(2);
+}
+
+__EXPORT void heartbeat_led_init(void)
 {
 	led_init();
+	hrt_call_every(&_heartbeat_call, 0, 500000, heartbeat_tick, 0);
 }
-
-/****************************************************************************
- * Name: board_autoled_on
- ****************************************************************************/
-
-void board_autoled_on(int led)
-{
-	if (!nuttx_owns_leds) {
-		return;
-	}
-
-	switch (led) {
-	default:
-		break;
-
-	case LED_HEAPALLOCATE:
-		phy_set_led(BOARD_LED_BLUE, true);
-		break;
-
-	case LED_IRQSENABLED:
-		phy_set_led(BOARD_LED_BLUE, false);
-		phy_set_led(BOARD_LED_GREEN, true);
-		break;
-
-	case LED_STACKCREATED:
-		phy_set_led(BOARD_LED_GREEN, true);
-		phy_set_led(BOARD_LED_BLUE, true);
-		break;
-
-	case LED_INIRQ:
-		phy_set_led(BOARD_LED_BLUE, true);
-		break;
-
-	case LED_SIGNAL:
-		phy_set_led(BOARD_LED_GREEN, true);
-		break;
-
-	case LED_ASSERTION:
-		phy_set_led(BOARD_LED_RED, true);
-		phy_set_led(BOARD_LED_BLUE, true);
-		break;
-
-	case LED_PANIC:
-		phy_set_led(BOARD_LED_RED, true);
-		break;
-
-	case LED_IDLE : /* IDLE */
-		phy_set_led(BOARD_LED_RED, true);
-		break;
-	}
-}
-
-/****************************************************************************
- * Name: board_autoled_off
- ****************************************************************************/
-
-void board_autoled_off(int led)
-{
-	if (!nuttx_owns_leds) {
-		return;
-	}
-
-	switch (led) {
-	default:
-		break;
-
-	case LED_SIGNAL:
-		phy_set_led(BOARD_LED_GREEN, false);
-		break;
-
-	case LED_INIRQ:
-		phy_set_led(BOARD_LED_BLUE, false);
-		break;
-
-	case LED_ASSERTION:
-		phy_set_led(BOARD_LED_RED, false);
-		phy_set_led(BOARD_LED_BLUE, false);
-		break;
-
-	case LED_PANIC:
-		phy_set_led(BOARD_LED_RED, false);
-		break;
-
-	case LED_IDLE : /* IDLE */
-		phy_set_led(BOARD_LED_RED, false);
-		break;
-	}
-}
-
-#endif /* CONFIG_ARCH_LEDS */

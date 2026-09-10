@@ -64,16 +64,6 @@
 /* LED is driven with open drain */
 #define GPIO_nLED_GREEN        /* PC13 */  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN13)
 
-#define BOARD_HAS_CONTROL_STATUS_LEDS      1
-#define BOARD_OVERLOAD_LED     LED_GREEN
-
-#define GPIO_LED_BLUE     GPIO_nLED_GREEN
-#define GPIO_LED_GREEN    GPIO_nLED_GREEN
-#define GPIO_LED_RED      GPIO_nLED_GREEN
-
-#define GPIO_nLED_BLUE    GPIO_nLED_GREEN
-#define GPIO_nLED_RED     GPIO_nLED_GREEN
-
 /*
  * ADC channels
  *
