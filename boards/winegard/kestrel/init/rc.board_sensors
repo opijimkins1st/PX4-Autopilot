@@ -11,4 +11,4 @@ icm42605 -R 6 -s start
 bmp581 start -I
 
 # qmc5883l magnetometer on I2C1
-qmc5883l start -I
+qmc5883l start -I -R 12
