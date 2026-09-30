@@ -49,6 +49,7 @@
 #include <drivers/drv_input_capture.h>
 
 #include <lib/perf/perf_counter.h>
+#include <nuttx/irq.h>
 
 // This can be overriden for a specific board.
 #ifndef BOARD_DMA_NUM_DSHOT_CHANNELS
@@ -132,6 +133,19 @@ static bool _erpms_ready[MAX_TIMER_IO_CHANNELS] = {};
 
 // hrt callback handle for captcomp post dma processing
 static struct hrt_call _cc_call;
+
+// BDShot cycle guard (Kestrel fix, ported from upstream PX4 main).
+// A new burst must not start while the previous burst/capture sequence
+// (DMA burst ISR -> capture DMA -> hrt capture callback) is still running,
+// otherwise task and interrupt context race on dma_handle and the NuttX DMA
+// allocator. If a cycle never completes, recover after a timeout.
+#define BDSHOT_CYCLE_TIMEOUT_US 2000
+static volatile bool _bdshot_cycle_complete = true;
+static volatile hrt_abstime _bdshot_cycle_start = 0;
+static perf_counter_t bdshot_skip_perf = NULL;
+static perf_counter_t bdshot_recover_perf = NULL;
+static void bdshot_restore_outputs(uint8_t timer_index);
+static void bdshot_recover(uint8_t timer_index);
 
 // decoding status for each channel
 static uint32_t read_ok[MAX_NUM_CHANNELS_PER_TIMER] = {};
@@ -291,6 +305,8 @@ int up_dshot_init(uint32_t channel_mask, unsigned dshot_pwm_freq, bool enable_bi
 	if (_bidirectional) {
 		PX4_INFO("Bidirectional DShot enabled, only one timer will be used");
 		hrt_callback_perf = perf_alloc(PC_ELAPSED, "dshot: callback perf");
+		bdshot_skip_perf = perf_alloc(PC_COUNT, "dshot: bdshot cycle skipped");
+		bdshot_recover_perf = perf_alloc(PC_COUNT, "dshot: bdshot recovered");
 	}
 
 	// NOTE: if bidirectional is enabled only 1 timer can be used. This is because Burst mode uses 1 DMA channel per timer
@@ -340,6 +356,27 @@ int up_dshot_init(uint32_t channel_mask, unsigned dshot_pwm_freq, bool enable_bi
 // Kicks off a DMA transmit for each configured timer and the associated channels
 void up_dshot_trigger()
 {
+	if (_bidirectional) {
+		irqstate_t flags = enter_critical_section();
+
+		if (!_bdshot_cycle_complete) {
+			if ((hrt_absolute_time() - _bdshot_cycle_start) < BDSHOT_CYCLE_TIMEOUT_US) {
+				// previous burst/capture still in flight: skip this update
+				leave_critical_section(flags);
+				perf_count(bdshot_skip_perf);
+				return;
+			}
+
+			// previous cycle never finished: recover instead of stalling forever
+			bdshot_recover(_bidi_timer_index);
+			perf_count(bdshot_recover_perf);
+		}
+
+		_bdshot_cycle_complete = false;
+		_bdshot_cycle_start = hrt_absolute_time();
+		leave_critical_section(flags);
+	}
+
 	// Enable DShot inverted on all channels
 	io_timer_set_enable(true, _bidirectional ? IOTimerChanMode_DshotInverted : IOTimerChanMode_Dshot,
 			    IO_TIMER_ALL_MODES_CHANNELS);
@@ -365,6 +402,7 @@ void up_dshot_trigger()
 
 				if (timer_configs[timer_index].dma_handle == NULL) {
 					PX4_WARN("DMA allocation for timer %u failed", timer_index);
+					_bdshot_cycle_complete = true;
 					continue;
 				}
 			}
@@ -397,6 +435,48 @@ void up_dshot_trigger()
 			io_timer_update_dma_req(timer_index, true);
 		}
 	}
+}
+
+// Put every initialized channel of this timer back into DShotInverted output mode.
+static void bdshot_restore_outputs(uint8_t timer_index)
+{
+	for (uint8_t output_channel = 0; output_channel < MAX_TIMER_IO_CHANNELS; output_channel++) {
+		if (timer_io_channels[output_channel].timer_index != timer_index) {
+			continue;
+		}
+
+		uint8_t timer_channel = timer_io_channels[output_channel].timer_channel;
+
+		if ((timer_channel <= 0) || (timer_channel >= 5)) {
+			continue;
+		}
+
+		if (timer_configs[timer_index].initialized_channels[timer_channel - 1]) {
+			io_timer_unallocate_channel(output_channel);
+			io_timer_channel_init(output_channel, IOTimerChanMode_DshotInverted, NULL, NULL);
+		}
+	}
+
+	io_timer_set_enable(true, IOTimerChanMode_DshotInverted, IO_TIMER_ALL_MODES_CHANNELS);
+}
+
+// Force the timer back to a known state after a cycle that never completed.
+// Must be called with interrupts disabled.
+static void bdshot_recover(uint8_t timer_index)
+{
+	hrt_cancel(&_cc_call);
+
+	if (timer_configs[timer_index].dma_handle != NULL) {
+		stm32_dmastop(timer_configs[timer_index].dma_handle);
+		stm32_dmafree(timer_configs[timer_index].dma_handle);
+		timer_configs[timer_index].dma_handle = NULL;
+	}
+
+	io_timer_update_dma_req(timer_index, false);
+	io_timer_capture_dma_req(timer_index, timer_configs[timer_index].capture_channel_index, false);
+	io_timer_unallocate_timer(timer_index);
+	bdshot_restore_outputs(timer_index);
+	_bdshot_cycle_complete = true;
 }
 
 static void select_next_capture_channel(uint8_t timer_index)
@@ -476,6 +556,8 @@ void dma_burst_finished_callback(DMA_HANDLE handle, uint8_t status, void *arg)
 	// If DMA handler is valid, start DMA
 	if (timer_configs[timer_index].dma_handle == NULL) {
 		PX4_WARN("failed to allocate dma for timer %u channel %u", timer_index, capture_channel);
+		bdshot_restore_outputs(timer_index);
+		_bdshot_cycle_complete = true;
 		return;
 	}
 
@@ -549,6 +631,8 @@ static void capture_complete_callback(void *arg)
 	io_timer_set_enable(true, IOTimerChanMode_DshotInverted, IO_TIMER_ALL_MODES_CHANNELS);
 
 	perf_end(hrt_callback_perf);
+
+	_bdshot_cycle_complete = true;
 }
 
 void process_capture_results(uint8_t timer_index, uint8_t channel_index)
