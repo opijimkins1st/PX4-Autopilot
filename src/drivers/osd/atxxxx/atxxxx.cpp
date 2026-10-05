@@ -94,6 +94,8 @@ OSDatxxxx::init()
 int
 OSDatxxxx::start()
 {
+	// Run on the low-priority queue so OSD SPI writes cannot delay the IMU (wq:SPI2)
+	ChangeWorkQueue(px4::wq_configurations::lp_default);
 	ScheduleOnInterval(OSD_UPDATE_RATE, 10000);
 
 	return PX4_OK;
